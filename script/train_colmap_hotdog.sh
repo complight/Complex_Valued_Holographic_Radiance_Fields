@@ -1,0 +1,11 @@
+python train.py \
+    --lr 0.01 \
+    --load_point \
+    --dataset_name "colmap_hotdog" \
+    --dataset_type "colmap" \
+    --split_ratio 3.0 \
+    --extra_scale 920 \
+    --start_densify_step 3000 \
+    --densify_every 300 \
+    --generate_dense_point 15 \
+    --densepoint_scatter 10

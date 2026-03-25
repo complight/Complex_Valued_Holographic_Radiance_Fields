@@ -1,0 +1,11 @@
+python train.py \
+    --lr 0.01 \
+    --load_point \
+    --dataset_name "colmap_drum" \
+    --dataset_type "colmap" \
+    --split_ratio 2.2 \
+    --extra_scale 3150 \
+    --densify_every 300 \
+    --generate_dense_point 9 \
+    --grad_threshold 0.000005 \
+    --densepoint_scatter 1

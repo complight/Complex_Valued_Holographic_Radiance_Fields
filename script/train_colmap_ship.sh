@@ -1,0 +1,12 @@
+python train.py \
+    --lr 0.01 \
+    --load_point \
+    --dataset_name "colmap_ship" \
+    --dataset_type "colmap" \
+    --split_ratio 2.8 \
+    --extra_scale 1650 \
+    --start_densify_step 3000 \
+    --densify_every 300 \
+    --generate_dense_point 10 \
+    --grad_threshold 0.000001 \
+    --densepoint_scatter 5

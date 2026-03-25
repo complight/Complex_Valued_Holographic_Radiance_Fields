@@ -1,0 +1,12 @@
+python train.py \
+    --lr 0.01 \
+    --load_point \
+    --dataset_name "fern" \
+    --dataset_type "nerf_llff_data" \
+    --split_ratio 1.5 \
+    --extra_scale 1 \
+    --densify_every 300 \
+    --start_densify_step 3000 \
+    --generate_dense_point 15 \
+    --densepoint_scatter 15 \
+    --img_size 960 640 
