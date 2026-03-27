@@ -1,5 +1,3 @@
-# cov3d_cuda
-
 This folder contains a tile-based, wave-optics-aware 3D Gaussian splatting rasterizer implemented in CUDA. Extends the standard 3DGS pipeline to render complex-valued (amplitude + phase) fields instead of RGB images, enabling coherent wave propagation through splatted Gaussians.
 
 ## Structure
@@ -55,38 +53,45 @@ Each Gaussian carries amplitude (`colours`), phase (`phase`), opacity, and a pro
 Solid lines = `#include`. Dashed lines = function calls via `extern` / forward declaration.
 
 ```mermaid
-flowchart LR
+flowchart TB
 
-    subgraph ORCH["Orchestration"]
-        ras_h["rasterizer_splat.h"]
-        ras_cu["rasterizer_splat.cu"]
-        ras_cu -->|"#include"| ras_h
-    end
+    subgraph ROW[" "]
+    direction LR
 
-    subgraph TILE["Tile Kernels"]
-        fwd_s_h["forward_splat.h"]
-        fwd_s_cu["forward_splat.cu"]
-        bwd_s_h["backward_splat.h"]
-        bwd_s_cu["backward_splat.cu"]
+        subgraph TILE["Tile Kernels"]
+        direction TB
+            fwd_s_h["forward_splat.h"]
+            fwd_s_cu["forward_splat.cu"]
+            bwd_s_h["backward_splat.h"]
+            bwd_s_cu["backward_splat.cu"]
 
-        fwd_s_cu -->|"#include"| fwd_s_h
-        bwd_s_cu -->|"#include"| bwd_s_h
-    end
+            fwd_s_cu -->|"#include"| fwd_s_h
+            bwd_s_cu -->|"#include"| bwd_s_h
+        end
 
-    subgraph GEOM["Geometry Kernels"]
-        fwd_h["forward.h"]
-        fwd_cu["forward.cu"]
-        bwd_h["backward.h"]
-        bwd_cu["backward.cu"]
+        subgraph GEOM["Geometry Kernels"]
+        direction TB
+            fwd_h["forward.h"]
+            fwd_cu["forward.cu"]
+            bwd_h["backward.h"]
+            bwd_cu["backward.cu"]
 
-        fwd_cu -->|"#include"| fwd_h
-        bwd_cu -->|"#include"| bwd_h
-    end
+            fwd_cu -->|"#include"| fwd_h
+            bwd_cu -->|"#include"| bwd_h
+        end
 
-    subgraph UTIL["Shared Utilities"]
-        aux["auxiliary.h"]
-        cfg["config.h"]
-        aux -->|"#include"| cfg
+        subgraph ORCH["Orchestration"]
+        direction TB
+            ras_h["rasterizer_splat.h"]
+            ras_cu["rasterizer_splat.cu"]
+            ras_cu -->|"#include"| ras_h
+        end
+        subgraph UTIL["Shared Utilities"]
+        direction TB
+            aux["auxiliary.h"]
+            cfg["config.h"]
+            aux -->|"#include"| cfg
+        end
     end
 
     ras_cu -->|"#include"| fwd_s_h
@@ -103,7 +108,6 @@ flowchart LR
     bwd_s_cu -.->|"extern:\nmeans2d_backward\ncov2d_backward"| bwd_cu
     bwd_cu -.->|"fwd decl:\ncov3d_forward\njacobian_forward"| fwd_cu
 ```
-
 ## Python API (`python_import.py`)
 
 ```python
