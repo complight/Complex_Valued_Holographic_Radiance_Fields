@@ -3,7 +3,7 @@
 # Complex-Valued Holographic Radiance Fields
 
 [![DOI](https://img.shields.io/badge/DOI-10.1145/3804450-green)](https://dl.acm.org/doi/10.1145/3804450?__cf_chl_tk=jludhiKpsnKdnHZYXsiGIMuxG8Ohz.qAgsrMvgG00JY-1774383449-1.0.1.1-YuTd0hsYfbfw17evdGlJe8aKtuk_gm9XlSC33l96L0g)
-[![GitHub](https://img.shields.io/badge/Code-GitHub-black)](https://github.com/complight/manuscript_Complex_Valued_Holographic_Radiance_Fields)
+[![GitHub](https://img.shields.io/badge/Code-GitHub-black)](https://github.com/complight/Complex_Valued_Holographic_Radiance_Fields)
 [![arXiv](https://img.shields.io/badge/arXiv-Preprint-b31b1b)](https://arxiv.org/abs/2506.08350)
 [![Project Website](https://img.shields.io/badge/Project-Website-orange)](https://complightlab.com/publications/complex_valued_holographic_radiance_fields/)
 
