@@ -244,20 +244,24 @@ All experiments in the paper are conducted on a NVIDIA A100 80GB GPU.
 ## Citation
 
 ```bibtex
-@article{zhan2025complexvalued,
-  author = {Zhan, Yicheng and Shin, Dong-Ha and Baek, Seung-Hwan and Ak\c{s}it, Kaan},
-  title = {Complex-Valued Holographic Radiance Fields},
-  year = {2026},
-  publisher = {Association for Computing Machinery},
-  address = {New York, NY, USA},
-  issn = {0730-0301},
-  journal = {ACM Transactions on Graphics (Presented in SIGGRAPH 2026)},
-  month = mar,
-  note = {},
-  keywords = {Novel View Synthesis, Radiance Fields, 3D Gaussians, Computer-Generated Holography},
-  location = {Los Angeles, California, USA},
-  doi = {10.1145/3804450},
-  url = {https://doi.org/10.1145/3804450},
+@article{10.1145/3804450,
+author = {Zhan, Yicheng and Shin, Dong-Ha and Baek, Seung-Hwan and Ak\c{s}it, Kaan},
+title = {Complex-Valued Holographic Radiance Fields},
+year = {2026},
+issue_date = {June 2026},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {45},
+number = {3},
+issn = {0730-0301},
+url = {https://doi.org/10.1145/3804450},
+doi = {10.1145/3804450},
+abstract = {Modeling wave properties of light is an important milestone for advancing physically-based rendering. In this paper, we propose complex-valued holographic radiance fields, a method that optimizes scenes without relying on intensity-based intermediaries. By leveraging multi-view images, our method directly optimizes a scene representation using complex-valued Gaussian primitives representing amplitude and phase values aligned with the scene geometry. Our approach eliminates the need for computationally expensive holographic rendering that typically utilizes a single view of a given scene. This accelerates holographic rendering speed by 30x-10,000x while achieving on-par image quality with state-of-the-art holography methods, representing a promising step towards bridging the representation gap between modeling wave properties of light and 3D geometry of scenes.},
+journal = {ACM Trans. Graph.},
+month = apr,
+articleno = {31},
+numpages = {16},
+keywords = {Novel view synthesis, radiance fields, 3D gaussians, computer-generated holography}
 }
 ```
 
