@@ -295,12 +295,16 @@ def run_training(args, args_prop):
         reconstruction_intensities = torch.sum(reconstruction_intensities_sum, dim = 0)
         for idx, (reconstruction_intensity, target) in enumerate(zip(reconstruction_intensities, targets)):
             pred_cropped = odak.learn.tools.crop_center(reconstruction_intensity, size=(H, W))
-            pred_cropped = torch.clamp(pred_cropped, min=0.0, max=1.0)
+            # Clamping zeroes the gradients of over-saturated pixels, so they are never pulled back.
+            # With --no_loss_clamp the loss sees the raw intensity (as in the paper).
+            pred_clamped = torch.clamp(pred_cropped, min=0.0, max=1.0)
+            if not args.no_loss_clamp:
+                pred_cropped = pred_clamped
             loss += loss_function(pred_cropped, target, idx)
             ssim_loss = loss_ssim(pred_cropped, target)
             loss += ssim_loss
             if idx == 0:
-                current_psnr = calculate_psnr(pred_cropped, target)
+                current_psnr = calculate_psnr(pred_clamped, target)
                 running_psnrs.append(current_psnr)
         # plane_loss = plane_assignment_loss(scene, quantized_depth, args_prop.num_planes)
         # loss += plane_loss
@@ -829,6 +833,10 @@ def get_args():
         "--grad_threshold", default=0.0005, type=float,
         help="grad_threshold for density_control in model.py. \
         1.0 keeps original density, >1.0 makes points more spread out."
+    )
+    parser.add_argument(
+        "--no_loss_clamp", action="store_true",
+        help="compute the reconstruction/SSIM loss on unclamped intensity"
     )
     parser.add_argument("--device", default="cuda", type=str, choices=["cuda", "cpu"])
     args = parser.parse_args()
