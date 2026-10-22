@@ -62,6 +62,7 @@ def setup_optimizer(gaussians, num_itrs, lr, current_iter=0, prev_optimizer=None
     # ]
     # Create new optimizer
     # optimizer = SparseGaussianAdam(parameters, lr=0, eps=1e-15)
+    base_lrs = {pg["name"]: pg["lr"] for pg in parameters}  # initial LRs, before any state transfer
     optimizer = Adan(parameters, lr=0, eps=1e-8)
     
     # Extract all trainable parameters from parameter groups for gradient clipping
@@ -107,64 +108,44 @@ def setup_optimizer(gaussians, num_itrs, lr, current_iter=0, prev_optimizer=None
                     if found and param_state:
                         optimizer.state[param] = param_state
     
-    # Create a custom scheduler that only updates specific parameter groups
-    remaining_iters = max(1, num_itrs - current_iter)
-    
-    # Find the indices of the parameter groups we want to apply the scheduler to
-    decay_group_indices = []
-    decay_params_list = []
+    # Cosine decay for selected parameter groups, evaluated in closed form over the whole
+    # run. Re-creating a CosineAnnealingLR at each densification with T_max = remaining
+    # iterations while restoring last_epoch made the decay finish far too early (and its
+    # recursive update can blow up when the epoch crosses an odd multiple of T_max).
     decay_group_names = ["means", "plane assignment"]  # Parameters that will have LR decay
     # decay_group_names = ["means", "plane assignment", "scales", 'phase', "opacity", "colours", "rot"]  # Parameters that will have LR decay
+    decay_group_indices = [i for i, group in enumerate(optimizer.param_groups)
+                           if group.get("name") in decay_group_names]
 
-    for i, group in enumerate(optimizer.param_groups):
-        if group.get("name") in decay_group_names:
-            decay_group_indices.append(i)
-            decay_params_list.append({'params': group['params'], 'lr': group['lr']})
-    
-    # Create a cosine annealing scheduler only for selected parameters
-    temp_optimizer = torch.optim.SGD(decay_params_list)
-    decay_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        temp_optimizer,
-        T_max=remaining_iters,
-        eta_min=1e-5
-    )
-    
-    # If we have a previous scheduler, try to restore its state
-    if prev_scheduler is not None:
-        try:
-            decay_scheduler.last_epoch = prev_scheduler.last_epoch
-            if hasattr(prev_scheduler, '_last_lr'):
-                decay_scheduler._last_lr = prev_scheduler._last_lr
-        except:
-            pass
-    
-    # Create a custom scheduler class that only updates specific learning rates
     class CustomScheduler:
-        def __init__(self, optimizer, decay_scheduler, decay_group_indices):
+        def __init__(self, optimizer, decay_group_indices, base_lrs, total_iters, eta_min=1e-5, last_epoch=0):
             self.optimizer = optimizer
-            self.decay_scheduler = decay_scheduler
             self.decay_group_indices = decay_group_indices
-            self.last_epoch = decay_scheduler.last_epoch
-            self._last_lr = decay_scheduler._last_lr if hasattr(decay_scheduler, '_last_lr') else None
-        
+            self.base_lrs = [base_lrs[optimizer.param_groups[i]["name"]] for i in decay_group_indices]
+            self.total_iters = max(1, total_iters)
+            self.eta_min = eta_min
+            self.last_epoch = last_epoch
+            self._apply()
+
+        def _apply(self):
+            t = min(self.last_epoch, self.total_iters)
+            factor = 0.5 * (1.0 + math.cos(math.pi * t / self.total_iters))
+            self._last_lr = []
+            for group_idx, base_lr in zip(self.decay_group_indices, self.base_lrs):
+                lr = self.eta_min + (base_lr - self.eta_min) * factor
+                self.optimizer.param_groups[group_idx]['lr'] = lr
+                self._last_lr.append(lr)
+
         def step(self):
-            # Step the decay scheduler
-            self.decay_scheduler.step()
-            
-            # Update only the specified parameter groups' learning rates
-            for i, group_idx in enumerate(self.decay_group_indices):
-                self.optimizer.param_groups[group_idx]['lr'] = self.decay_scheduler.get_last_lr()[i]
-            
-            # Update scheduler state
-            self.last_epoch = self.decay_scheduler.last_epoch
-            self._last_lr = self.decay_scheduler.get_last_lr()
-        
+            self.last_epoch += 1
+            self._apply()
+
         def get_last_lr(self):
             return [group['lr'] for group in self.optimizer.param_groups]
-    
-    # Create our custom scheduler
-    scheduler = CustomScheduler(optimizer, decay_scheduler, decay_group_indices)
-    
+
+    last_epoch = prev_scheduler.last_epoch if prev_scheduler is not None else current_iter
+    scheduler = CustomScheduler(optimizer, decay_group_indices, base_lrs, num_itrs, last_epoch=last_epoch)
+
     return optimizer, scheduler, trainable_params
 
 # ---------------------------------------------------------------------------------------------------
